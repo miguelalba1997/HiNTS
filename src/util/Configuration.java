@@ -1,6 +1,6 @@
 package util;
 
-import com.sun.org.apache.bcel.internal.generic.NEW;
+//import com.sun.org.apache.bcel.internal.generic.NEW;
 
 public class Configuration {
 	
@@ -18,12 +18,12 @@ public class Configuration {
 	public static final int[] rngSeed = new int[]{1,2,3,4};
 	
 	// Lattice
-	public static final boolean PERX = false; //whether the structure is periodic in hopping in x
-	public static final boolean PERY = false; //whether the structure is periodic in hopping in y
+	public static final boolean PERX = true; //whether the structure is periodic in hopping in x
+	public static final boolean PERY = true; //whether the structure is periodic in hopping in y
 	public static final boolean PERZ = true; //whether the structure is periodic in hopping in z
 		
 	// NP
-	public static final double distThr = 1.27;
+	public static final double distThr = 1.1; //TODO WAS 1.27
 	public static final double bradii = 47.0;
 	public static final double reorgenergy = 0.05;
 	public static final double jumpFreq = 1.0;

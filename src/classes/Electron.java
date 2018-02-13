@@ -138,7 +138,8 @@ public class Electron extends Charge {
 		case "ma":
 			rate = sample.jumpfreq * Math.exp(-2.0*npdistance*overlap);
 			if(energy_diff>0.0)
-				rate = rate*Math.exp(-energy_diff/sample.temperature);
+				//rate = rate*Math.exp(-energy_diff/(Constants.k_boltzmann_ry * sample.temperature));
+				rate = rate*Math.exp(-energy_diff/(sample.temperature));
 			break;
 
 		case "marcus":

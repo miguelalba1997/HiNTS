@@ -15,6 +15,7 @@ import routines.Setup;
 import util.Configuration;
 import util.Constants;
 import util.MersenneTwisterFast;
+import java.lang.Math;
 
 public class Sample {
     String capacitanceModel;
@@ -58,6 +59,7 @@ public class Sample {
     HoppingEvent currentEvent, previousEvent, latestEvent;
     
     MersenneTwisterFast rng;
+    public double simTime=0;
 
  
     public Sample(Map<String,Object> params){
@@ -72,7 +74,7 @@ public class Sample {
     	sampleCurrent = 0;
     	
     	if(feature=="mobility"){
-    		voltage = 30*Constants.kelvintory*0.1*25 / Constants.sqrt2;
+    		voltage = 30*Constants.kelvintory*0.1 * 250 / Constants.sqrt2;
     		System.out.println("Mobility run, voltage is "+voltage);
     	}
     	if(feature=="iv")
@@ -194,7 +196,7 @@ public class Sample {
 		}
 		
 		// calculate V_prime for Grand Canonical
-		V_prime = (cellx*celly*cellz) / (Math.pow(2*Math.PI, 1.5) / Math.pow(Configuration.emass*temperature*Constants.k_boltzmann_ry, -1.5)); 
+        V_prime = (cellx*celly*cellz) / (Math.pow(2*Math.PI, 1.5) / Math.pow(Configuration.emass*temperature*Constants.k_boltzmann_ry, -1.5));
 		System.out.println("V_prime is "+ V_prime+" "+cellx);
 
 	}
@@ -448,8 +450,8 @@ public class Sample {
 					}
 				}
     		}
-
-    	System.out.println(targetRate<currentRate);
+        //TODO note the print statement below was not originally commented out
+    	//System.out.println(targetRate<currentRate);
     	if(latestEvent.type=="empty")
     		System.out.println("empty events!"); 
     	
@@ -523,11 +525,12 @@ public class Sample {
     		target = currentEvent.targetNP;
     		
     		executeEvent(currentEvent, i);
+    		simTime+=-Math.log(rng.nextDouble())/rateOnSample*Constants.ry_ps; //This time is in picoseconds
     		updateEvents(source, target);
     		
     		
     		
-    		if(i%20000==0){
+    		if(i%200000==0){
     			
     			System.out.println(i);
     			source.add_electron_try(this);
@@ -564,7 +567,11 @@ public class Sample {
 
     	l = System.nanoTime() - l;
         System.out.println("iteration took " + l/1000000000 + "s");
-        return sampleCurrent;
+
+        //(eleccurrent*cellz*bohrtonm*cellz*bohrtonm)*0.01*volt_ry/(time_ps*voltage*nelec) A snippet from the Cython Version.
+        //return sampleCurrent;
+        double mobility = sampleCurrent*cellz*cellz*Constants.bohrtonm*Constants.bohrtonm*.01*Constants.volt_ry/(simTime*voltage*nelec);
+        return mobility;
     }
  
     
