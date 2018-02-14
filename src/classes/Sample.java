@@ -73,12 +73,12 @@ public class Sample {
     	thr = (double) params.get("thr");
     	sampleCurrent = 0;
     	
-    	if(feature=="mobility"){
-    		voltage = 30*Constants.kelvintory*0.1 * 250 / Constants.sqrt2;
+    	if(feature == "mobility"){
+    		voltage = 30*Constants.kelvintory*0.1 * 25 / Constants.sqrt2;
     		System.out.println("Mobility run, voltage is "+voltage);
     	}
-    	if(feature=="iv")
-    		voltage = 30*Constants.kelvintory*((double)params.get("voltage_ratio"))*25/Constants.sqrt2;
+    	if(feature == "iv")
+    		voltage = 30*Constants.kelvintory*((double)params.get("voltageRatio"))*25/Constants.sqrt2;
     	
     	
 
@@ -570,8 +570,18 @@ public class Sample {
 
         //(eleccurrent*cellz*bohrtonm*cellz*bohrtonm)*0.01*volt_ry/(time_ps*voltage*nelec) A snippet from the Cython Version.
         //return sampleCurrent;
-        double mobility = sampleCurrent*cellz*cellz*Constants.bohrtonm*Constants.bohrtonm*.01*Constants.volt_ry/(simTime*voltage*nelec);
-        return mobility;
+        double mobility = sampleCurrent * cellz * cellz * Constants.bohrtonm * Constants.bohrtonm * .01 * Constants.volt_ry/(simTime * voltage * nelec);
+        double current = sampleCurrent * Constants.electron_si / (simTime * Math.pow(10,-12));
+
+        if(feature == "mobility") {
+			return mobility;
+		}
+		else if(feature == "iv"){
+        	return current;
+		}
+		else {
+			return 0;
+		}
     }
  
     
@@ -591,6 +601,7 @@ public class Sample {
     	params.put("feature", "mobility");
     	params.put("temperature", 80.0);
     	params.put("thr", 0.0);
+    	params.put("voltageRatio", 1);
         
         Sample newsample = new Sample(params);
         
