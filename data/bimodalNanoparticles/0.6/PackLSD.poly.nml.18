@@ -1,0 +1,60 @@
+Basic parameters:
+&HPPPackingSize
+   hpp_n_types=2 
+   ptp_n_points=400 
+/
+Particle sizes/shapes:
+&HPPParticleShapes_HS
+   radii_pdf="G"  
+   type_proportions_= ".6666"  
+   radii_ = "7.5 0.325 6.6 0.01" 
+/
+Boundary conditions:
+&HPPBoundaryShape_LB
+   lb_lattice_vectors= 1.0 0 0  0 0.1 0 0 0 1.0
+   lb_periodic=T T T 
+/
+Particle (initial) velocities:
+&DHPPVelocities_HS
+   masses_="1.0 0.6" 
+   equipartition_speeds=T 
+   speeds_="" 
+/
+Rate of growth of particles:
+&DHPPParticleDeformations_HS
+   one_expansion_rate=T 
+   expansions_="0.02"
+/
+Random options:
+&LSDPackingOptions
+   lsd_options%lsd_max_time=-1 
+   lsd_display_n_collisions=F 
+/
+&LSDGenerationOptions
+   lsdpg_options%lsdpg_animate_compression=F 
+   lsdpg_options%lsdpg_save_animation=F 
+   lsdpg_save_static_snapshots=F 
+   lsdpg_save_dynamic_snapshots=F 
+   lsdpg_options%lsdpg_density_stepsize=-1 
+   lsdpg_options%lsdpg_use_nnl=F 
+   lsdpg_options%lsdpg_n_stages=5000
+   lsdpg_options%lsdpg_n_events=1250 
+   lsdpg_options%lsdpg_cool_down=-1 
+   lsdpg_options%lsdpg_density_tolerance=0 
+   lsdpg_options%lsdpg_pressure_tolerance=1E100 
+/      
+Execution/logging options:
+&ExecutionHandlerOptions
+   log_type="FO" 
+   monitor_log_type="FO" 
+   log_execution="E" 
+   terminate_execution="E"
+   execution_options%execution_random_seed=0 
+   execution_options%register_execution=F 
+/
+OpenGL general rendering options (I do not document most of them)
+&OpenGLOptions
+/
+OpenGL packing-specific rendering options:
+&HPPRenderingOptions
+/

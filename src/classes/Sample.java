@@ -49,7 +49,7 @@ public class Sample {
   
     double npdc, liganddc, metalPrefactor, FWHM;
     String filename, feature;
-    
+
     
     //
     Nanoparticle[] nanoparticles;
@@ -77,14 +77,16 @@ public class Sample {
     		voltage = 30*Constants.kelvintory*0.1 * 25 / Constants.sqrt2;
     		System.out.println("Mobility run, voltage is "+voltage);
     	}
-    	if(feature == "iv")
-    		voltage = 30*Constants.kelvintory*((double)params.get("voltageRatio"))*25/Constants.sqrt2;
-    	
-    	
+    	if(feature == "iv") {
+			voltage = 30 * Constants.kelvintory * ((double) params.get("voltageRatio")) * 25 / Constants.sqrt2;
+		}
+		//System.out.println("I'm almost to loadConfiguration");
 
-    	loadConfiguration();        
+    	loadConfiguration();
+		//System.out.println("I've made it past loadConfiguration");
    
 		nanoparticles = Setup.setupNanoparticles(this);
+		//System.out.println("I've made it past setupNanoparticles");
     	/*System.out.println(nelec);
         System.out.println(nanoparticles[0].x/Constants.nmtobohr);
         System.out.println(nanoparticles[399].getCB1());
@@ -94,14 +96,21 @@ public class Sample {
 		System.out.println(this.drains.size());
 		System.out.println(voltage);*/
 
-		
-        FWHM = Setup.getFWHM(nanoparticles, this);
+		if(Configuration.biModal){
+			FWHM=0;
+		}
+		else {
+			FWHM = Setup.getFWHM(nanoparticles, this);
+		}
+		//System.out.println("I've made it past FWHM");
         ediff_thr = FWHM * thr;
         dielectrics();
         //System.out.println(npdc);
         //System.out.println(packingfraction);
         set_selfenergy();
+		//System.out.println("I've made it past set_selfenergy");
         buildNeighborList(false, true);
+		//System.out.println("I've made it past builNeighborList");
         
         
         /*
@@ -176,6 +185,12 @@ public class Sample {
     		String end = "nanoparticles"+String.valueOf(sample_number)+".inp";
     		filename = prefix + middle + end;
     	}
+		if(bimodal){
+			String prefix = "./data/bimodalNanoparticles/";
+			String middle = String.valueOf(Configuration.proportionLargeNP);
+			String end = "/nanoparticles"+String.valueOf(sample_number)+".inp";
+			filename = prefix +middle + end;
+		}
     	
 		List<String> lines;
 		try {
@@ -503,9 +518,9 @@ public class Sample {
  
     
     public double simulation(){
-    	
-    	
-    	
+
+
+		//System.out.println("I'm in sample number" + sample_number + "At the beginning of 'simulation'");
     	long l;
     	//int numberEvents;
     	Nanoparticle source, target;
@@ -513,12 +528,12 @@ public class Sample {
     	l = System.nanoTime();
     	
         initializeEvents();
-    	
+		//System.out.println("I'm in sample number" + sample_number + "after initializing events");
     	for(int i=0; i<Configuration.STEPS; i++){
     		
     		//System.out.println();
     		//System.out.println("step "+i);
-            currentEvent =new HoppingEvent();
+            currentEvent = new HoppingEvent();
     		currentEvent = searchHoppingEvent();
 
     		source = currentEvent.sourceNP;
@@ -527,9 +542,11 @@ public class Sample {
     		executeEvent(currentEvent, i);
     		simTime+=-Math.log(rng.nextDouble())/rateOnSample*Constants.ry_ps; //This time is in picoseconds
     		updateEvents(source, target);
+
+
     		
     		
-    		
+    		//This is for the implementation of the GCE
     		if(i%200000==0){
     			
     			System.out.println(i);
@@ -604,6 +621,7 @@ public class Sample {
     	params.put("voltageRatio", 1);
         
         Sample newsample = new Sample(params);
+
         
         newsample.simulation();
         

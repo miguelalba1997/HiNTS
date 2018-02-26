@@ -14,7 +14,7 @@ import com.google.common.io.Files;
 import classes.Nanoparticle;
 import classes.Sample;
 import util.Constants;
-//import org.apache.commons.math3.*;
+import org.apache.commons.math3.*;
 import org.apache.commons.math3.fitting.GaussianCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
 
@@ -64,27 +64,38 @@ public class Setup {
 	@throws what kind of exception does this method throw
 	*/
 	public static double getFWHM(Nanoparticle[] nanoparticles, Sample sample){
+		System.out.println("I'm in FWHM");
 		double FWHM;
 		int bins = 50;
 		double[] levels_eV = new double[sample.nnanops];
 		double[] levels = new double[sample.nnanops];
+		//System.out.println("I've made it past the levels");
 		for(int i=0; i<sample.nnanops; i++){
 			levels[i] = nanoparticles[i].getCB1(); // levels in ry unit
 			levels_eV[i] = nanoparticles[i].getCB1()*Constants.rytoev; // levels in eV unit
 		}
 		Arrays.sort(levels);
+		//System.out.println("I've sorted the levels");
 		//System.out.println(Arrays.toString(levels));
 		double[] levelCount = util.Utility.calcHistogram(levels, levels[0], levels[levels.length-1], bins);
+		//System.out.println("I've calced the histogram");
 		double[] levelLinear = util.Utility.linearSpread(levels[0], levels[levels.length-1], bins);
+		//System.out.println("I've made the linear spread");
 		//System.out.println(levelCount.length);
 		//System.out.println(Arrays.toString(levelCount));
 		//System.out.println(levelLinear.length);
 		//System.out.println(Arrays.toString(levelLinear));
 		GaussianCurveFitter fitter = GaussianCurveFitter.create();
+		//System.out.println("I've made the Gaussian fitter");
 	    WeightedObservedPoints obs = new WeightedObservedPoints();
+		//System.out.println("I've initialized the Weighted observed points");
 	    for (int index = 0; index < levelLinear.length; index++) {
-	            obs.add(levelLinear[index], levelCount[index]);}
+	            obs.add(levelLinear[index], levelCount[index]);
+			//System.out.println("I've added the observed points to a list");
+	    }
+		//System.out.println(obs.toList());
 	    double[] bestFit = fitter.fit(obs.toList());
+		//System.out.println("I've best fit");
 	    // bestFit = norm, mean, sigma  ---> return sigma ---> FWHM
 		
 	    FWHM = bestFit[2]*2*Math.sqrt(2*Math.log(2));

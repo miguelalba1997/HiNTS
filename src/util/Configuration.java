@@ -23,7 +23,7 @@ public class Configuration {
 	public static final boolean PERZ = true; //whether the structure is periodic in hopping in z
 		
 	// NP
-	public static final double distThr = 1.1; //TODO WAS 1.27
+	public static final double distThr = 1.27; //TODO WAS 1.27
 	public static final double bradii = 47.0;
 	public static final double reorgenergy = 0.05;
 	public static final double jumpFreq = 1.0;
@@ -34,10 +34,11 @@ public class Configuration {
 	public static final String diameter = "6.6nm/";
 	public static final int e_degeneracy = 8;
 	public static final int h_degeneracy = 8;
-	
+	public static final double proportionLargeNP= 0.0;
+
 	// Boolean control
 	public static final boolean twoLayer = false;
-	public static final boolean biModal = false;
+	public static boolean biModal;
 	public static final boolean pennModel = false;
 	public static final boolean lcapacitance0 = true; //whether to add polarization term
 	

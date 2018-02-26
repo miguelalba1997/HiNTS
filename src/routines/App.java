@@ -1,6 +1,7 @@
 package routines;
 
 import java.io.FileNotFoundException;
+import java.io.ObjectInputFilter;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -13,6 +14,7 @@ import java.io.PrintWriter;
 
 
 import classes.Sample;
+import util.Configuration;
 import util.Utility;
 
 class MobilityProcessor implements Callable<Double[]> {
@@ -41,10 +43,13 @@ class MobilityProcessor implements Callable<Double[]> {
 		params.put("temperature", T);
 		params.put("thr", 0.0);
 		params.put("voltageRatio", 1);
+
 		
 		Sample newsample = new Sample(params);
-		
+		//System.out.println("I've made it past sample creation");
 		// the first element is the id, the second element is the actual result
+		//System.out.println("I am in sample number" + id + "In the processor");
+
 		result[0] = (double) id;
 		result[1] = newsample.simulation();
 		
@@ -102,6 +107,8 @@ public class App {
 		Scanner reader = new Scanner(System.in);
 		System.out.println("Please choose the feature you are interested in (1=mobility or 2=iv): ");
 		int n = reader.nextInt();
+		System.out.println("Please choose the nanoparticle distribution you are studying (1=normal or 2=bimodal):");
+		int l=reader.nextInt();
 		if(n==1){
 			feature = "mobility";
 		}
@@ -111,6 +118,17 @@ public class App {
 		else{
 			System.exit(2);
 		}
+		if(l==1){
+			Configuration.biModal=false;
+		}
+		else if(l==2) {
+			Configuration.biModal=true;
+		}
+		else{
+			System.exit(2);
+		}
+
+
 
 
 
@@ -122,7 +140,7 @@ public class App {
 		if (feature == "mobility") {
 			PrintWriter writer = null;
 
-			{
+			{if(!Configuration.biModal) {
 				try {
 					writer = new PrintWriter("mobilitytestfile.txt", "UTF-8");
 				} catch (FileNotFoundException e) {
@@ -131,8 +149,19 @@ public class App {
 					e.printStackTrace();
 				}
 			}
+
+			if(Configuration.biModal){
+				try {
+					writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"300Kmobilitytestfile.txt", "UTF-8");
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+			}
+			}
 			//double[] tempList = {30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 80, 120, 150, 180, 210, 240, 270, 300};
-			double[] tempList = {80,300};
+			double[] tempList = {300};
 			double[][] resultList = new double[tempList.length][];
 			for (int t = 0; t < tempList.length; t++) {
 				ExecutorService executor = Executors.newFixedThreadPool(4);
@@ -199,7 +228,7 @@ public class App {
 		if(feature == "iv"){
 			PrintWriter writer = null;
 
-			{
+			{if(!Configuration.biModal) {
 				try {
 					writer = new PrintWriter("ivtestfile.txt", "UTF-8");
 				} catch (FileNotFoundException e) {
@@ -208,7 +237,17 @@ public class App {
 					e.printStackTrace();
 				}
 			}
-			double[] multiplierList = {.01,.05,.09,.1,.11,.2,.5,1,2,3,4,5,10};
+				if(Configuration.biModal){
+					try {
+						writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"ivtestfile.txt", "UTF-8");
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			double[] multiplierList = {.01,.05,.09,.1,.11,.2,.5,1,2,3,4,5,10,15,20,30,40,50};
 			//double[] multiplierList = {1,10};
 			double[][] resultList = new double[multiplierList.length][];
 			for (int m = 0; m < multiplierList.length; m++) {

@@ -65,7 +65,7 @@ public class Utility {
 		double[] resultOuput = new double[resultRaw.size()/2];
 		
 		for(int i=0 ; i<resultRaw.size()/2;i++){
-			resultOuput[i] = (resultOrdered[i] + resultOrdered[i+1])/2;
+			resultOuput[i] = (resultOrdered[2*i] + resultOrdered[2*i+1])/2;
 		}
 		return resultOuput;
 	}
