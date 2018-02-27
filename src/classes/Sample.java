@@ -28,7 +28,9 @@ public class Sample {
     //boolean lpoissonnone, lpoissonewald, lpoissonnn;
 
     boolean perx, pery, perz, bimodal, twolayer, lcapacitance0, pennmodel = false;
-    
+    double delta_bending;
+
+
     double marcusprefac2, jumpfreq, emass, hmass;
     double reorgenergy, bradii, capacitance,ligandlength, sourcewf, drainwf;
     double chemicalPotential = 0, V_prime;  // used for grand canonical ensemble
@@ -71,8 +73,10 @@ public class Sample {
     	feature = (String) params.get("feature");
     	temperature = (double) params.get("temperature") * Constants.kelvintory;
     	thr = (double) params.get("thr");
+    	delta_bending = (double) params.get("delta_bending");
+
     	sampleCurrent = 0;
-    	
+
     	if(feature == "mobility"){
     		voltage = 30*Constants.kelvintory*0.1 * 25 / Constants.sqrt2;
     		System.out.println("Mobility run, voltage is "+voltage);
@@ -179,15 +183,21 @@ public class Sample {
     	bimodal = Configuration.biModal;
     	twolayer = Configuration.twoLayer;
     	
-    	if(!bimodal){
+    	if(!bimodal && !twolayer){
     		String prefix= "./data/nanoparticles/";
     		String middle = String.valueOf(nnanops)+"_"+Configuration.diameter;
     		String end = "nanoparticles"+String.valueOf(sample_number)+".inp";
     		filename = prefix + middle + end;
     	}
-		if(bimodal){
+		if(bimodal && !twolayer){
 			String prefix = "./data/bimodalNanoparticles/";
 			String middle = String.valueOf(Configuration.proportionLargeNP);
+			String end = "/nanoparticles"+String.valueOf(sample_number)+".inp";
+			filename = prefix +middle + end;
+		}
+		if(twolayer){
+			String prefix = "./data/CommensurationData/";
+			String middle = String.valueOf(Configuration.sizeDisorder);
 			String end = "/nanoparticles"+String.valueOf(sample_number)+".inp";
 			filename = prefix +middle + end;
 		}
@@ -619,6 +629,7 @@ public class Sample {
     	params.put("temperature", 80.0);
     	params.put("thr", 0.0);
     	params.put("voltageRatio", 1);
+    	params.put("delta_bending",0.0);
         
         Sample newsample = new Sample(params);
 

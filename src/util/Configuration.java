@@ -35,9 +35,13 @@ public class Configuration {
 	public static final int e_degeneracy = 8;
 	public static final int h_degeneracy = 8;
 	public static final double proportionLargeNP= 0.0;
+	public static final double sizeDisorder=0.01;
+
+
 
 	// Boolean control
-	public static final boolean twoLayer = false;
+	public static boolean twoLayer;
+
 	public static boolean biModal;
 	public static final boolean pennModel = false;
 	public static final boolean lcapacitance0 = true; //whether to add polarization term

@@ -57,8 +57,8 @@ public class Nanoparticle {
 		z = zcoord*Constants.nmtobohr;
 		diameter = diameter_input*Constants.nmtobohr - 2.0*sample.ligandlength;
 		radius = diameter/2;
-		set_cbenergy();
-		set_vbenergy();
+		set_cbenergy(sample);
+		set_vbenergy(sample);
 		set_occupation(sample);
 		if(z-radius <= sample.ndist_thr){
 			source = true;
@@ -79,23 +79,35 @@ public class Nanoparticle {
 	}
 	
 	
-	private void set_cbenergy(){
+	private void set_cbenergy(Sample sample){
 		 // Kand and Wise, d in nm, energy in eV
 		 // cbenergy=evtory*(0.238383 +4.28063 *diameter**(-1.87117 ))
 		 // cbenergy2=0.254004 +8.0018 *diameter**(-1.82088 )
 		 // localdiam=diameter*bohrtonm
          cbenergy1 = Constants.evtory*(-4.238383 + 4.28063*Math.pow((diameter*Constants.bohrtonm), -1.87117));
 		 cbenergy[0] = Constants.evtory*(-4.238383 + 4.28063*Math.pow((diameter*Constants.bohrtonm), -1.87117));
+
+		 //Set energy shift for the two_layer model.
+		 if (sample.twolayer && sample.cellx/2 > this.x) {
+		 	set_shiftCB(sample.delta_bending);
+		 }
+
+
 		 cbenergy2 = Constants.evtory*(-4.254004 + 8.0018*Math.pow((diameter*Constants.bohrtonm), -1.82088));
 	     cbenergy[1] = Constants.evtory*(-4.254004 + 8.0018*Math.pow((diameter*Constants.bohrtonm), -1.82088));
 	}
-	
-	private void set_vbenergy(){
+
+
+
+	private void set_vbenergy(Sample sample){
 	     // Kand and Wise, d in nm, energy in eV
 	     // localdiam=diameter*bohrtonm
 	     // vbenergy=evtory*(-0.220257 -5.23931 *diameter**(-1.85753 ))
 		 vbenergy1 = Constants.evtory*(-4.728265 - 5.23931*Math.pow((diameter*Constants.bohrtonm), -1.85753));
 		 vbenergy[0] = Constants.evtory*(-4.728265 - 5.23931*Math.pow((diameter*Constants.bohrtonm), -1.85753));
+		if (sample.twolayer && sample.cellx/2 > this.x) {
+			set_shiftVB(sample.delta_bending);
+		}
 	}
 	
 	private void set_occupation(Sample sample){
@@ -155,8 +167,8 @@ public class Nanoparticle {
 		cbenergy[0] += energyShift;
 	}
 	
-	private void set_shiftVB (double energyshift){
-		vbenergy[0] += energyshift;
+	private void set_shiftVB (double energyShift){
+		vbenergy[0] += energyShift;
 	}
 	
 	public double getCB1() {
@@ -285,7 +297,8 @@ public class Nanoparticle {
 		occupationTotalHoles--;
 		
 	}
-	
+
+
 	
     // update events, single NP version
     public void updateEvents(boolean self, Sample sample) {
