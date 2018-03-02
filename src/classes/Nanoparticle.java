@@ -85,12 +85,14 @@ public class Nanoparticle {
 		 // cbenergy2=0.254004 +8.0018 *diameter**(-1.82088 )
 		 // localdiam=diameter*bohrtonm
          cbenergy1 = Constants.evtory*(-4.238383 + 4.28063*Math.pow((diameter*Constants.bohrtonm), -1.87117));
+         //System.out.println("THE ENERGY IS ---------------------------" + cbenergy1);
 		 cbenergy[0] = Constants.evtory*(-4.238383 + 4.28063*Math.pow((diameter*Constants.bohrtonm), -1.87117));
 
 		 //Set energy shift for the two_layer model.
 		 if (sample.twolayer && sample.cellx/2 > this.x) {
 		 	set_shiftCB(sample.delta_bending);
 		 }
+		 //System.out.println("THE ENERGY IS ---------------------------" + cbenergy[0]);
 
 
 		 cbenergy2 = Constants.evtory*(-4.254004 + 8.0018*Math.pow((diameter*Constants.bohrtonm), -1.82088));
@@ -224,7 +226,7 @@ public class Nanoparticle {
 				//debug = energy_diff/(sample.temperature);
 				
 				
-				System.out.println("adding probability is "+probability);
+				//System.out.println("adding probability is "+probability);
 				
 				return true;
 			}
@@ -265,7 +267,7 @@ public class Nanoparticle {
 		}
 		
 		// TODO: ignoring excitonic effect for the moment, as there should be ZERO holes.
-		System.out.println("energy is "+energy);
+		//System.out.println("energy is "+energy);
 		return energy;
 	}
 	

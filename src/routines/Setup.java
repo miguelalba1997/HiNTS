@@ -64,7 +64,7 @@ public class Setup {
 	@throws what kind of exception does this method throw
 	*/
 	public static double getFWHM(Nanoparticle[] nanoparticles, Sample sample){
-		System.out.println("I'm in FWHM");
+		//System.out.println("I'm in FWHM");
 		double FWHM;
 		int bins = 50;
 		double[] levels_eV = new double[sample.nnanops];

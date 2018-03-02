@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 
 import classes.Sample;
 import util.Configuration;
+import util.Constants;
 import util.Utility;
 
 class MobilityProcessor implements Callable<Double[]> {
@@ -158,11 +159,11 @@ class CommensurationBendingProcessor implements Callable<Double[]> {
 
 		Map<String, Object> params = new HashMap<>();
 
-		params.put("nelec", 100);
+		params.put("nelec", 400);
 		params.put("nholes", 0);
 		params.put("nnanops", 400);
 		params.put("sample_no", id);
-		params.put("feature", "mobility");
+		params.put("feature", "layer_occupation");
 		params.put("temperature", 80.0);
 		params.put("thr", 0.0);
 		params.put("voltageRatio", 1);
@@ -190,7 +191,7 @@ public class App {
 
 	public static void main(String[] args) {
 
-		int numberOfSamples = 40;
+		int numberOfSamples = 2;
 		String CommensurationLoop=null;
 
 		String feature=null;
@@ -506,7 +507,7 @@ public class App {
 
 			{if(!Configuration.biModal) {
 				try {
-					writer = new PrintWriter("commensurationBendingtestfile.txt", "UTF-8");
+					writer = new PrintWriter("commensurationBendingtestfile"+String.valueOf(400)+"elec.txt", "UTF-8");
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (UnsupportedEncodingException e) {
@@ -516,7 +517,7 @@ public class App {
 
 				if(Configuration.biModal){
 					try {
-						writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"commensurationBendingtestfile.txt", "UTF-8");
+						writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"commensurationBendingtestfile200elec.txt", "UTF-8");
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (UnsupportedEncodingException e) {
@@ -524,7 +525,11 @@ public class App {
 					}
 				}
 			}
-			int[] gateVoltageList = {10,25,50,75,100,125,150,200,250,300,350,400,450,500,550,600};
+			double[] meVGateVoltageList = {10,25,50,75,100,125,150,200,250,300,350,400,450,500,550,600};
+			double[] gateVoltageList= new double[meVGateVoltageList.length];
+			for(int i=0; i<meVGateVoltageList.length; i++){
+				gateVoltageList[i]=meVGateVoltageList[i]* Constants.evtory/1000;
+			}
 			double[][] resultList = new double[gateVoltageList.length][];
 			for (int t = 0; t < gateVoltageList.length; t++) {
 				ExecutorService executor = Executors.newFixedThreadPool(4);

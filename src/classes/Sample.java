@@ -238,6 +238,28 @@ public class Sample {
     	return FWHM;
 		
 	}
+	public double locateElectrons(Sample sample){
+    	double height=sample.cellx/2;
+    	int topLayerOccupation=0;
+    	for(int i=0; i<sample.nanoparticles.length; i++){
+    		if(nanoparticles[i].x>height && nanoparticles[i].occupationTotalElectron>0){
+    			topLayerOccupation+=nanoparticles[i].occupationTotalElectron;
+			}
+		}
+		return (double)topLayerOccupation;
+
+
+	}
+	public double locateNanoparticles(Sample sample){
+		double height=sample.cellx/2;
+		int topLayerNanos=0;
+		for(int i=0; i<sample.nanoparticles.length; i++){
+			if(nanoparticles[i].x>height){
+				topLayerNanos+=1;
+			}
+		}
+		return (double)topLayerNanos;
+	}
 
     private void dielectrics() {
 		
@@ -557,9 +579,9 @@ public class Sample {
     		
     		
     		//This is for the implementation of the GCE
-    		if(i%200000==0){
+    		if(i%20000==0){
     			
-    			System.out.println(i);
+    			//System.out.println(i);
     			source.add_electron_try(this);
     
     		}
@@ -605,6 +627,9 @@ public class Sample {
 		}
 		else if(feature == "iv"){
         	return current;
+		}
+		else if(feature=="layer_occupation") {
+		return locateElectrons(this)/locateNanoparticles(this);
 		}
 		else {
 			return 0;
