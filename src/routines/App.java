@@ -18,7 +18,12 @@ import util.Configuration;
 import util.Constants;
 import util.Utility;
 
-class MobilityProcessor implements Callable<Double[]> {
+
+
+
+
+
+class MobilityProcessor implements Callable<Map<String,Object>> {
 	private int id;
 	public double T;
 	Double[] result;
@@ -29,10 +34,9 @@ class MobilityProcessor implements Callable<Double[]> {
 	}
 
 	@Override
-	public Double[] call() {
+	public Map<String, Object> call() {
 		System.out.println("Starting: "+id);
-		
-		result = new Double[2];
+
 		
 		Map<String, Object> params = new HashMap<>();
 		
@@ -51,17 +55,18 @@ class MobilityProcessor implements Callable<Double[]> {
 		//System.out.println("I've made it past sample creation");
 		// the first element is the id, the second element is the actual result
 		//System.out.println("I am in sample number" + id + "In the processor");
-
+		/*
 		result[0] = (double) id;
 		result[1] = newsample.simulation();
-		
+		*/
+		Map<String, Object> result = newsample.simulation();
 		System.out.println("Completed: "+id);	
 		
 		return result;
 	}
 }
 
-class IVProcessor implements Callable<Double[]> {
+class IVProcessor implements Callable<Map<String,Object>> {
 	private int id;
 	public double vm;
 	Double[] result;
@@ -72,10 +77,9 @@ class IVProcessor implements Callable<Double[]> {
 	}
 
 	@Override
-	public Double[] call() {
+	public Map<String, Object> call() {
 		System.out.println("Starting: "+id);
 
-		result = new Double[2];
 
 		Map<String, Object> params = new HashMap<>();
 
@@ -92,28 +96,30 @@ class IVProcessor implements Callable<Double[]> {
 		Sample newsample = new Sample(params);
 
 		// the first element is the id, the second element is the actual result
+		/*
 		result[0] = (double) id;
 		result[1] = newsample.simulation();
+		*/
+		Map<String, Object> result = newsample.simulation();
 
 		System.out.println("Completed: "+id);
 
 		return result;
 	}
 }
-class CommensurationnElecProcessor implements Callable<Double[]> {
+class CommensurationnElecProcessor implements Callable<Map<String,Object>> {
 	private int id;
 	public int nelec;
-	Double[] result;
 	public CommensurationnElecProcessor(int id, int numElec){
 		this.id = id;
 		this.nelec=numElec;
 	}
 
 	@Override
-	public Double[] call() {
+	public Map<String,Object> call() {
 		System.out.println("Starting: "+id);
 
-		result = new Double[2];
+		//result = new Map<String,Object>;
 
 		Map<String, Object> params = new HashMap<>();
 
@@ -133,8 +139,7 @@ class CommensurationnElecProcessor implements Callable<Double[]> {
 		// the first element is the id, the second element is the actual result
 		//System.out.println("I am in sample number" + id + "In the processor");
 
-		result[0] = (double) id;
-		result[1] = newsample.simulation();
+		Map<String, Object> result = newsample.simulation();
 
 		System.out.println("Completed: "+id);
 
@@ -142,20 +147,18 @@ class CommensurationnElecProcessor implements Callable<Double[]> {
 	}
 }
 
-class CommensurationBendingProcessor implements Callable<Double[]> {
+class CommensurationBendingProcessor implements Callable<Map<String,Object>> {
 	private int id;
 	public double delta_bending;
-	Double[] result;
 	public CommensurationBendingProcessor(int id, double deltaBending){
 		this.id = id;
 		this.delta_bending=deltaBending;
 	}
 
 	@Override
-	public Double[] call() {
+	public Map<String,Object> call() {
 		System.out.println("Starting: "+id);
 
-		result = new Double[2];
 
 		Map<String, Object> params = new HashMap<>();
 
@@ -171,12 +174,11 @@ class CommensurationBendingProcessor implements Callable<Double[]> {
 
 
 		Sample newsample = new Sample(params);
-		//System.out.println("I've made it past sample creation");
+		//System.out.println("I've made it past sample creation in " + id);
 		// the first element is the id, the second element is the actual result
 		//System.out.println("I am in sample number" + id + "In the processor");
 
-		result[0] = (double) id;
-		result[1] = newsample.simulation();
+		Map<String,Object> result = newsample.simulation();
 
 		System.out.println("Completed: "+id);
 
@@ -188,54 +190,53 @@ class CommensurationBendingProcessor implements Callable<Double[]> {
 public class App {
 
 
-
 	public static void main(String[] args) {
 
-		int numberOfSamples = 2;
-		String CommensurationLoop=null;
+		Map<String, Object> results = new HashMap<>();
 
-		String feature=null;
+		results.put("id", 1);
+		results.put("mobility", 1.0);
+		results.put("current", 1.0);
+		results.put("top occupation", 1.0);
+
+		int numberOfSamples = 200;
+		String CommensurationLoop = null;
+
+		String feature = null;
 		Scanner reader = new Scanner(System.in);
 		System.out.println("Please choose the feature you are interested in (1=mobility or 2=iv or 3=commensuration): ");
 		int n = reader.nextInt();
-		if(n==3) {
+		if (n == 3) {
 			System.out.println("What are you sweeping over? (1=electron number or 2=gate voltage): ");
 			int h = reader.nextInt();
-			if(h==1){
-				CommensurationLoop="electron number";
-			}
-			else if(h==2){
-				CommensurationLoop="gate voltage";
-			}
-			else{
+			if (h == 1) {
+				CommensurationLoop = "electron number";
+			} else if (h == 2) {
+				CommensurationLoop = "gate voltage";
+			} else {
 				System.exit(2);
 			}
-		}System.out.println("Please choose the nanoparticle distribution you are studying (1=unimodal(must choose unimodal for commensuration) or 2=bimodal): ");
-		int l=reader.nextInt();
-		if(n==1){
+		}
+		System.out.println("Please choose the nanoparticle distribution you are studying (1=unimodal(must choose unimodal for commensuration) or 2=bimodal): ");
+		int l = reader.nextInt();
+		if (n == 1) {
 			feature = "mobility";
-			Configuration.twoLayer=false;
-		}
-		else if(n==2) {
+			Configuration.twoLayer = false;
+		} else if (n == 2) {
 			feature = "iv";
-			Configuration.twoLayer=false;
-		}
-		else if(n==3){
-			feature="commensuration";
-			Configuration.twoLayer=true;
-		}
-
-		else{
+			Configuration.twoLayer = false;
+		} else if (n == 3) {
+			feature = "commensuration";
+			Configuration.twoLayer = true;
+		} else {
 			System.exit(2);
 		}
 
-		if(l==1){
-			Configuration.biModal=false;
-		}
-		else if(l==2) {
-			Configuration.biModal=true;
-		}
-		else{
+		if (l == 1) {
+			Configuration.biModal = false;
+		} else if (l == 2) {
+			Configuration.biModal = true;
+		} else {
 			System.exit(2);
 		}
 
@@ -244,34 +245,17 @@ public class App {
 		if (feature == "mobility") {
 			PrintWriter writer = null;
 
-			{if(!Configuration.biModal) {
-				try {
-					writer = new PrintWriter("mobilitytestfile.txt", "UTF-8");
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
-
-			if(Configuration.biModal){
-				try {
-					writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"AllTempmobilitytestfile.txt", "UTF-8");
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
-			}
 			double[] tempList = {30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 80, 120, 150, 180, 210, 240, 270, 300};
-			//double[] tempList = {300};
-			double[][] resultList = new double[tempList.length][];
+			//double[] tempList = {80};
+			double[][] mobilityresultList = new double[tempList.length][];
+			double[][] currentresultList = new double[tempList.length][];
+			double[][] occupationresultList = new double[tempList.length][];
+
 			for (int t = 0; t < tempList.length; t++) {
 				ExecutorService executor = Executors.newFixedThreadPool(4);
-				List<Future<Double[]>> futures = new ArrayList<>();
+				List<Future<Map<String, Object>>> futures = new ArrayList<>();
 				for (int i = 0; i < numberOfSamples; i++) {
-					futures.add(executor.submit(new MobilityProcessor(i, tempList[t])));
+					futures.add(executor.submit(new CommensurationBendingProcessor(i, tempList[t])));
 				}
 
 				executor.shutdown();
@@ -292,9 +276,11 @@ public class App {
 
 				System.out.println("All tasks completed.");
 
-				List<Double[]> resultRaw = new ArrayList<>();
+				//List<Double[]> resultRaw = new ArrayList<>();
+				List<Map<String, Object>> resultRaw = new ArrayList<>();
 
-				for (Future<Double[]> future : futures) {
+				//for (Future<Double[]> future : futures) {
+				for (Future<Map<String, Object>> future : futures) {
 					try {
 						resultRaw.add(future.get());
 					} catch (InterruptedException e) {
@@ -307,58 +293,89 @@ public class App {
 				//double[] resultOrdered = Utility.orderResult(resultRaw);
 
 				// Average over regular and inverted samples
-				double[] resultProcessed = Utility.processResult(resultRaw);
-				//System.out.println(Arrays.toString(resultProcessed));
-				resultList[t] = Utility.processResult(resultRaw);
-			}
-			//System.out.println("temp loop complete");
-			for (int t = 0; t < resultList.length; t++) {
-				System.out.println(Arrays.toString(resultList[t]));
-				for (int i = 0; i < resultList[t].length; i++) {
-					writer.print(resultList[t][i]);
-					writer.print(' ');
-					//System.out.println(resultList[t][i]);
+				//double[] resultProcessed = new double[resultRaw.size()/2];
+				for (String key : Utility.processResult(resultRaw).get(1).keySet()) {
+					double[] resultProcessed = new double[resultRaw.size() / 2];
+					for (int i = 0; i < Utility.processResult(resultRaw).size(); i++) {
+						resultProcessed[i] = (double) Utility.processResult(resultRaw).get(i).get(key);
+						//System.out.println("result processed");
+						//System.out.println(Arrays.toString(resultProcessed));
+					}
+
+					if (key == "id") {
+
+					}
+					if (key == "mobility") {
+						mobilityresultList[t] = resultProcessed;
+					}
+					if (key == "current") {
+						currentresultList[t] = resultProcessed;
+					}
+					if (key == "top occupation") {
+						occupationresultList[t] = resultProcessed;
+					}
+
 				}
-				writer.println();
+
+
 			}
-			writer.close();
 
 
-			//System.out.println(Arrays.toString(resultProcessed));
+			for (String key : results.keySet()) {
+				{
+					if (!Configuration.biModal && key != "id") {
+						try {
+							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
 
-			//System.out.println(results.get(1)[0]);
+						double[][] resultList = new double[tempList.length][];
+						if (key == "mobility") {
+							resultList = mobilityresultList;
+						} else if (key == "top occupation") {
+							resultList = occupationresultList;
+						} else if (key == "current") {
+							resultList = currentresultList;
+						}
+
+
+						for (int r = 0; r < resultList.length; r++) {
+							System.out.println(Arrays.toString(resultList[r]));
+							for (int i = 0; i < resultList[r].length; i++) {
+								writer.print(resultList[r][i]);
+								writer.print(' ');
+								//System.out.println(resultList[t][i]);
+							}
+							writer.println();
+						}
+						writer.close();
+
+					}
+
+
+					//System.out.println(Arrays.toString(resultProcessed));
+
+					//System.out.println(results.get(1)[0]);
+				}
+			}
 		}
 
-		if(feature == "iv"){
+		if (feature == "iv") {
 			PrintWriter writer = null;
 
-			{if(!Configuration.biModal) {
-				try {
-					writer = new PrintWriter("ivtestfile.txt", "UTF-8");
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
-				if(Configuration.biModal){
-					try {
-						writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"ivtestfile.txt", "UTF-8");
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			double[] multiplierList = {.01,.05,.09,.1,.11,.2,.5,1,2,3,4,5,10,15,20,30,40,50};
-			//double[] multiplierList = {1,10};
-			double[][] resultList = new double[multiplierList.length][];
-			for (int m = 0; m < multiplierList.length; m++) {
+			double[] multiplierList = {.01, .05, .09, .1, .11, .2, .5, 1, 2, 3, 4, 5, 10, 15, 20, 30, 40, 50};
+			double[][] mobilityresultList = new double[multiplierList.length][];
+			double[][] currentresultList = new double[multiplierList.length][];
+			double[][] occupationresultList = new double[multiplierList.length][];
+
+			for (int t = 0; t < multiplierList.length; t++) {
 				ExecutorService executor = Executors.newFixedThreadPool(4);
-				List<Future<Double[]>> futures = new ArrayList<>();
+				List<Future<Map<String, Object>>> futures = new ArrayList<>();
 				for (int i = 0; i < numberOfSamples; i++) {
-					futures.add(executor.submit(new IVProcessor(i, multiplierList[m])));
+					futures.add(executor.submit(new CommensurationBendingProcessor(i, multiplierList[t])));
 				}
 
 				executor.shutdown();
@@ -379,9 +396,11 @@ public class App {
 
 				System.out.println("All tasks completed.");
 
-				List<Double[]> resultRaw = new ArrayList<>();
+				//List<Double[]> resultRaw = new ArrayList<>();
+				List<Map<String, Object>> resultRaw = new ArrayList<>();
 
-				for (Future<Double[]> future : futures) {
+				//for (Future<Double[]> future : futures) {
+				for (Future<Map<String, Object>> future : futures) {
 					try {
 						resultRaw.add(future.get());
 					} catch (InterruptedException e) {
@@ -394,58 +413,89 @@ public class App {
 				//double[] resultOrdered = Utility.orderResult(resultRaw);
 
 				// Average over regular and inverted samples
-				double[] resultProcessed = Utility.processResult(resultRaw);
-				//System.out.println(Arrays.toString(resultProcessed));
-				resultList[m] = Utility.processResult(resultRaw);
-			}
-			System.out.println("Voltage Sweep complete");
-			for (int m = 0; m < resultList.length; m++) {
-				System.out.println(Arrays.toString(resultList[m]));
-				for (int i = 0; i < resultList[m].length; i++) {
-					writer.print(resultList[m][i]);
-					writer.print(' ');
-					//System.out.println(resultList[t][i]);
+				//double[] resultProcessed = new double[resultRaw.size()/2];
+				for (String key : Utility.processResult(resultRaw).get(1).keySet()) {
+					double[] resultProcessed = new double[resultRaw.size() / 2];
+					for (int i = 0; i < Utility.processResult(resultRaw).size(); i++) {
+						resultProcessed[i] = (double) Utility.processResult(resultRaw).get(i).get(key);
+						System.out.println("result processed");
+						//System.out.println(Arrays.toString(resultProcessed));
+					}
+
+					if (key == "id") {
+
+					}
+					if (key == "mobility") {
+						mobilityresultList[t] = resultProcessed;
+					}
+					if (key == "current") {
+						currentresultList[t] = resultProcessed;
+					}
+					if (key == "top occupation") {
+						occupationresultList[t] = resultProcessed;
+					}
+
 				}
-				writer.println();
+
+
 			}
-			writer.close();
 
 
-			//System.out.println(Arrays.toString(resultProcessed));
+			for (String key : results.keySet()) {
+				{
+					if (!Configuration.biModal && key != "id") {
+						try {
+							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
 
-			//System.out.println(results.get(1)[0]);
+						double[][] resultList = new double[multiplierList.length][];
+						if (key == "mobility") {
+							resultList = mobilityresultList;
+						} else if (key == "top occupation") {
+							resultList = occupationresultList;
+						} else if (key == "current") {
+							resultList = currentresultList;
+						}
 
+
+						for (int r = 0; r < resultList.length; r++) {
+							System.out.println(Arrays.toString(resultList[r]));
+							for (int i = 0; i < resultList[r].length; i++) {
+								writer.print(resultList[r][i]);
+								writer.print(' ');
+								//System.out.println(resultList[t][i]);
+							}
+							writer.println();
+						}
+						writer.close();
+
+					}
+
+
+					//System.out.println(Arrays.toString(resultProcessed));
+
+					//System.out.println(results.get(1)[0]);
+				}
+			}
 		}
-		if (feature == "commensuration" && CommensurationLoop=="electron number") {
+		if (feature == "commensuration" && CommensurationLoop == "electron number") {
 			PrintWriter writer = null;
 
-			{if(!Configuration.biModal) {
-				try {
-					writer = new PrintWriter("commensurationnElectestfile.txt", "UTF-8");
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
 
-				if(Configuration.biModal){
-					try {
-						writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"commensurationnElectestfile.txt", "UTF-8");
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			int[] numElecList = {10,25,50,75,100,125,150,200,250,300,350,400,450,500,550,600};
-			double[][] resultList = new double[numElecList.length][];
+			int[] numElecList = {10, 25, 50, 75, 100, 125, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600};
+			double[][] mobilityresultList = new double[numElecList.length][];
+			double[][] currentresultList = new double[numElecList.length][];
+			double[][] occupationresultList = new double[numElecList.length][];
+
 			for (int t = 0; t < numElecList.length; t++) {
 				ExecutorService executor = Executors.newFixedThreadPool(4);
-				List<Future<Double[]>> futures = new ArrayList<>();
+				List<Future<Map<String, Object>>> futures = new ArrayList<>();
 				for (int i = 0; i < numberOfSamples; i++) {
-					futures.add(executor.submit(new CommensurationnElecProcessor(i, numElecList[t])));
+					futures.add(executor.submit(new CommensurationBendingProcessor(i, numElecList[t])));
 				}
 
 				executor.shutdown();
@@ -466,9 +516,11 @@ public class App {
 
 				System.out.println("All tasks completed.");
 
-				List<Double[]> resultRaw = new ArrayList<>();
+				//List<Double[]> resultRaw = new ArrayList<>();
+				List<Map<String, Object>> resultRaw = new ArrayList<>();
 
-				for (Future<Double[]> future : futures) {
+				//for (Future<Double[]> future : futures) {
+				for (Future<Map<String, Object>> future : futures) {
 					try {
 						resultRaw.add(future.get());
 					} catch (InterruptedException e) {
@@ -481,59 +533,91 @@ public class App {
 				//double[] resultOrdered = Utility.orderResult(resultRaw);
 
 				// Average over regular and inverted samples
-				double[] resultProcessed = Utility.processResult(resultRaw);
-				//System.out.println(Arrays.toString(resultProcessed));
-				resultList[t] = Utility.processResult(resultRaw);
-			}
-			//System.out.println("temp loop complete");
-			for (int t = 0; t < resultList.length; t++) {
-				System.out.println(Arrays.toString(resultList[t]));
-				for (int i = 0; i < resultList[t].length; i++) {
-					writer.print(resultList[t][i]);
-					writer.print(' ');
-					//System.out.println(resultList[t][i]);
+				//double[] resultProcessed = new double[resultRaw.size()/2];
+				for (String key : Utility.processResult(resultRaw).get(1).keySet()) {
+					double[] resultProcessed = new double[resultRaw.size() / 2];
+					for (int i = 0; i < Utility.processResult(resultRaw).size(); i++) {
+						resultProcessed[i] = (double) Utility.processResult(resultRaw).get(i).get(key);
+						System.out.println("result processed");
+						//System.out.println(Arrays.toString(resultProcessed));
+					}
+
+					if (key == "id") {
+
+					}
+					if (key == "mobility") {
+						mobilityresultList[t] = resultProcessed;
+					}
+					if (key == "current") {
+						currentresultList[t] = resultProcessed;
+					}
+					if (key == "top occupation") {
+						occupationresultList[t] = resultProcessed;
+					}
+
 				}
-				writer.println();
+
+
 			}
-			writer.close();
 
 
-			//System.out.println(Arrays.toString(resultProcessed));
+			for (String key : results.keySet()) {
+				{
+					if (!Configuration.biModal && key != "id") {
+						try {
+							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
 
-			//System.out.println(results.get(1)[0]);
+						double[][] resultList = new double[numElecList.length][];
+						if (key == "mobility") {
+							resultList = mobilityresultList;
+						} else if (key == "top occupation") {
+							resultList = occupationresultList;
+						} else if (key == "current") {
+							resultList = currentresultList;
+						}
+
+
+						for (int r = 0; r < resultList.length; r++) {
+							System.out.println(Arrays.toString(resultList[r]));
+							for (int i = 0; i < resultList[r].length; i++) {
+								writer.print(resultList[r][i]);
+								writer.print(' ');
+								//System.out.println(resultList[t][i]);
+							}
+							writer.println();
+						}
+						writer.close();
+
+					}
+
+
+					//System.out.println(Arrays.toString(resultProcessed));
+
+					//System.out.println(results.get(1)[0]);
+				}
+			}
 		}
-		if (feature == "commensuration" && CommensurationLoop=="gate voltage") {
+		if (feature == "commensuration" && CommensurationLoop == "gate voltage") {
 			PrintWriter writer = null;
 
-			{if(!Configuration.biModal) {
-				try {
-					writer = new PrintWriter("commensurationBendingtestfile"+String.valueOf(400)+"elec.txt", "UTF-8");
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
+			double[] meVGateVoltageList = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250};
+			//double[] meVGateVoltageList = {250};
+			double[] gateVoltageList = new double[meVGateVoltageList.length];
+			for (int i = 0; i < meVGateVoltageList.length; i++) {
+				gateVoltageList[i] = meVGateVoltageList[i] * Constants.evtory / 1000;
 			}
+			double[][] mobilityresultList = new double[gateVoltageList.length][];
+			double[][] currentresultList = new double[gateVoltageList.length][];
+			double[][] occupationresultList = new double[gateVoltageList.length][];
 
-				if(Configuration.biModal){
-					try {
-						writer = new PrintWriter("bimodal"+String.valueOf(Configuration.proportionLargeNP)+"commensurationBendingtestfile200elec.txt", "UTF-8");
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			double[] meVGateVoltageList = {10,25,50,75,100,125,150,200,250,300,350,400,450,500,550,600};
-			double[] gateVoltageList= new double[meVGateVoltageList.length];
-			for(int i=0; i<meVGateVoltageList.length; i++){
-				gateVoltageList[i]=meVGateVoltageList[i]* Constants.evtory/1000;
-			}
-			double[][] resultList = new double[gateVoltageList.length][];
 			for (int t = 0; t < gateVoltageList.length; t++) {
 				ExecutorService executor = Executors.newFixedThreadPool(4);
-				List<Future<Double[]>> futures = new ArrayList<>();
+				List<Future<Map<String, Object>>> futures = new ArrayList<>();
 				for (int i = 0; i < numberOfSamples; i++) {
 					futures.add(executor.submit(new CommensurationBendingProcessor(i, gateVoltageList[t])));
 				}
@@ -556,9 +640,11 @@ public class App {
 
 				System.out.println("All tasks completed.");
 
-				List<Double[]> resultRaw = new ArrayList<>();
+				//List<Double[]> resultRaw = new ArrayList<>();
+				List<Map<String, Object>> resultRaw = new ArrayList<>();
 
-				for (Future<Double[]> future : futures) {
+				//for (Future<Double[]> future : futures) {
+				for (Future<Map<String, Object>> future : futures) {
 					try {
 						resultRaw.add(future.get());
 					} catch (InterruptedException e) {
@@ -571,29 +657,84 @@ public class App {
 				//double[] resultOrdered = Utility.orderResult(resultRaw);
 
 				// Average over regular and inverted samples
-				double[] resultProcessed = Utility.processResult(resultRaw);
-				//System.out.println(Arrays.toString(resultProcessed));
-				resultList[t] = Utility.processResult(resultRaw);
-			}
-			//System.out.println("temp loop complete");
-			for (int t = 0; t < resultList.length; t++) {
-				System.out.println(Arrays.toString(resultList[t]));
-				for (int i = 0; i < resultList[t].length; i++) {
-					writer.print(resultList[t][i]);
-					writer.print(' ');
-					//System.out.println(resultList[t][i]);
+				//double[] resultProcessed = new double[resultRaw.size()/2];
+				for (String key : results.keySet()) {
+					double[] resultProcessed = new double[resultRaw.size() / 2];
+					for (int i = 0; i < Utility.processResult(resultRaw).size(); i+=1) {
+						//System.out.println(Utility.processResult(resultRaw));
+						if(key!="id") {
+							resultProcessed[i] = (double) Utility.processResult(resultRaw).get(i).get(key);
+						}
+						//System.out.println(i);
+						//System.out.println("result processed");
+						//System.out.println(Arrays.toString(resultProcessed));
+					}
+
+					if (key == "id") {
+
+					}
+					if (key == "mobility") {
+						mobilityresultList[t] = resultProcessed;
+					}
+					if (key == "current") {
+						currentresultList[t] = resultProcessed;
+					}
+					if (key == "top occupation") {
+						occupationresultList[t] = resultProcessed;
+					}
+
 				}
-				writer.println();
+
+
 			}
-			writer.close();
 
 
-			//System.out.println(Arrays.toString(resultProcessed));
+			for (String key : results.keySet()) {
+				{
+					if (!Configuration.biModal && key != "id") {
+						try {
+							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
 
-			//System.out.println(results.get(1)[0]);
+						double[][] resultList = new double[gateVoltageList.length][];
+						if (key == "mobility") {
+							resultList = mobilityresultList;
+						} else if (key == "top occupation") {
+							resultList = occupationresultList;
+						} else if (key == "current") {
+							resultList = currentresultList;
+						}
+
+
+						for (int r = 0; r < resultList.length; r++) {
+							System.out.println(Arrays.toString(resultList[r]));
+							for (int i = 0; i < resultList[r].length; i++) {
+								writer.print(resultList[r][i]);
+								writer.print(' ');
+								//System.out.println(resultList[t][i]);
+							}
+							writer.println();
+						}
+						writer.close();
+
+					}
+
+
+					System.out.println("Voltage loop complete");
+
+
+					//System.out.println(Arrays.toString(resultProcessed));
+
+					//System.out.println(results.get(1)[0]);
+				}
+			}
+
 		}
 	}
-
 }
 
 

@@ -2,6 +2,7 @@ package util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.*;
 
 public class Utility {
 
@@ -43,7 +44,7 @@ public class Utility {
 		}
 	
 	// Order the result by id
-	public static double[] orderResult(List<Double[]> resultRaw) {
+	/*public static double[] orderResult(List<Double[]> resultRaw) {
 		
 		int index;
 		double[] resultOuput = new double[resultRaw.size()];
@@ -56,16 +57,58 @@ public class Utility {
 		}
 		return resultOuput;
 	}
+	*/
+
+	public static ArrayList<Map<String,Object>> orderResult(List<Map<String,Object>> resultRaw) {
+
+		int index;
+		ArrayList<Map<String,Object>> resultOuput = new ArrayList<Map<String,Object>>(resultRaw.size());
+		Map map= new HashMap<String,Object>();
+		for (int i = 0; i < resultRaw.size(); i++) {
+			resultOuput.add(map);
+		}
+
+
+		for(int i=0 ; i<resultRaw.size();i++){
+			index = (int) resultRaw.get(i).get("id");
+			resultOuput.set(index, resultRaw.get(i));
+		}
+		return resultOuput;
+	}
 	
 	//
 	// Average over regular and inverted sample pairs
+	/*
 	public static double[] processResult(List<Double[]> resultRaw) {
-		
 		double[] resultOrdered = orderResult(resultRaw);
 		double[] resultOuput = new double[resultRaw.size()/2];
 		
 		for(int i=0 ; i<resultRaw.size()/2;i++){
 			resultOuput[i] = (resultOrdered[2*i] + resultOrdered[2*i+1])/2;
+		}
+		return resultOuput;
+	}
+	*/
+
+	public static ArrayList<Map<String,Object>> processResult(List<Map<String,Object>> resultRaw) {
+		ArrayList<Map<String,Object>> resultOrdered = orderResult(resultRaw);
+		ArrayList<Map<String,Object>> resultOuput = new ArrayList<Map<String,Object>>(resultRaw.size()/2);
+
+		Map map2= new HashMap<String,Object>();
+		for (int i = 0; i < resultRaw.size()/2; i++) {
+			resultOuput.add(map2);
+		}
+
+		for(int i=0 ; i<resultRaw.size()/2;i+=1) {
+			HashMap<String, Object> map = new HashMap<String,Object>();
+			for (String key : resultOrdered.get(i).keySet()) {
+				if(key!="id"){
+					map.put(key,((double)resultOrdered.get(2*i).get(key)+(double)resultOrdered.get(2*i+1).get(key))/2);
+				}
+
+				resultOuput.set(i,map);
+				//System.out.println(map.get("mobility"));
+			}
 		}
 		return resultOuput;
 	}

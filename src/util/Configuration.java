@@ -35,7 +35,7 @@ public class Configuration {
 	public static final int e_degeneracy = 8;
 	public static final int h_degeneracy = 8;
 	public static final double proportionLargeNP= 0.0;
-	public static final double sizeDisorder=0.01;
+	public static final double sizeDisorder=0.03;
 
 
 

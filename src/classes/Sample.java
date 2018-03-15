@@ -17,6 +17,8 @@ import util.Constants;
 import util.MersenneTwisterFast;
 import java.lang.Math;
 
+
+
 public class Sample {
     String capacitanceModel;
 	//boolean lcapzunger, lcapdelerue; 
@@ -63,7 +65,8 @@ public class Sample {
     MersenneTwisterFast rng;
     public double simTime=0;
 
- 
+
+
     public Sample(Map<String,Object> params){
     	
     	nelec = (int) params.get("nelec");
@@ -77,6 +80,7 @@ public class Sample {
 
     	sampleCurrent = 0;
 
+		voltage = 30*Constants.kelvintory*0.1 * 25 / Constants.sqrt2;
     	if(feature == "mobility"){
     		voltage = 30*Constants.kelvintory*0.1 * 25 / Constants.sqrt2;
     		System.out.println("Mobility run, voltage is "+voltage);
@@ -90,7 +94,7 @@ public class Sample {
 		//System.out.println("I've made it past loadConfiguration");
    
 		nanoparticles = Setup.setupNanoparticles(this);
-		//System.out.println("I've made it past setupNanoparticles");
+		//System.out.println("I've made it past setupNanoparticles in " + sample_number);
     	/*System.out.println(nelec);
         System.out.println(nanoparticles[0].x/Constants.nmtobohr);
         System.out.println(nanoparticles[399].getCB1());
@@ -103,10 +107,13 @@ public class Sample {
 		if(Configuration.biModal){
 			FWHM=0;
 		}
+		else if(Configuration.sizeDisorder>0){
+			FWHM=0;
+		}
 		else {
 			FWHM = Setup.getFWHM(nanoparticles, this);
 		}
-		//System.out.println("I've made it past FWHM");
+		//System.out.println("I've made it past FWHM in " + sample_number);
         ediff_thr = FWHM * thr;
         dielectrics();
         //System.out.println(npdc);
@@ -238,6 +245,7 @@ public class Sample {
     	return FWHM;
 		
 	}
+	//counts the number of electrons in the top layer.
 	public double locateElectrons(Sample sample){
     	double height=sample.cellx/2;
     	int topLayerOccupation=0;
@@ -250,6 +258,7 @@ public class Sample {
 
 
 	}
+	//counts the number of nanoparticles in the top layer.
 	public double locateNanoparticles(Sample sample){
 		double height=sample.cellx/2;
 		int topLayerNanos=0;
@@ -549,18 +558,18 @@ public class Sample {
 	}
  
     
-    public double simulation(){
+    public Map<String, Object> simulation(){
 
 
-		//System.out.println("I'm in sample number" + sample_number + "At the beginning of 'simulation'");
+		//System.out.println("I'm in sample number " + sample_number + " at the beginning of 'simulation'");
     	long l;
     	//int numberEvents;
     	Nanoparticle source, target;
     	
     	l = System.nanoTime();
-    	
+		//System.out.println("I'm in sample number " + sample_number + " before initializing events");
         initializeEvents();
-		//System.out.println("I'm in sample number" + sample_number + "after initializing events");
+		//System.out.println("I'm in sample number " + sample_number + " after initializing events");
     	for(int i=0; i<Configuration.STEPS; i++){
     		
     		//System.out.println();
@@ -622,18 +631,38 @@ public class Sample {
         double mobility = sampleCurrent * cellz * cellz * Constants.bohrtonm * Constants.bohrtonm * .01 * Constants.volt_ry/(simTime * voltage * nelec);
         double current = sampleCurrent * Constants.electron_si / (simTime * Math.pow(10,-12));
 
-        if(feature == "mobility") {
+		Map<String, Object> results = new HashMap<>();
+
+		results.put("id", this.sample_number);
+		results.put("mobility", mobility);
+		results.put("current", current);
+		results.put("top occupation", locateElectrons(this)/nelec);
+		//System.out.println("The simulation time is: " + simTime);
+		//System.out.println("The voltage is: " + voltage);
+		//System.out.println("The number of electrons is: " + nelec);
+		//System.out.println("The mobility is: " + results.get("mobility"));
+		//System.out.println("The mobility is: " + mobility);
+		//System.out.println("The sample current is: " + sampleCurrent);
+		//System.out.println("The sample feature is:" + feature);
+
+		return results;
+
+
+        /*if(feature == "mobility") {
 			return mobility;
 		}
 		else if(feature == "iv"){
         	return current;
 		}
 		else if(feature=="layer_occupation") {
-		return locateElectrons(this)/locateNanoparticles(this);
+		return locateElectrons(this)/nelec;
 		}
 		else {
 			return 0;
 		}
+		*/
+
+
     }
  
     
