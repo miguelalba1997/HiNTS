@@ -34,8 +34,9 @@ public class Configuration {
 	public static final String diameter = "6.6nm/";
 	public static final int e_degeneracy = 8;
 	public static final int h_degeneracy = 8;
-	public static final double proportionLargeNP= 0.0;
-	public static final double sizeDisorder=0.03;
+	public static double proportionLargeNP;
+	public static final String sizeDisorder="0.003";
+	public static final int screeningFactor = 2;
 
 
 
@@ -45,6 +46,7 @@ public class Configuration {
 	public static boolean biModal;
 	public static final boolean pennModel = false;
 	public static final boolean lcapacitance0 = true; //whether to add polarization term
-	
+	public static final boolean nearestNeighborCoulomb = false;
+	public static boolean mattLawSamples;
 	
 }

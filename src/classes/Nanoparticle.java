@@ -31,7 +31,9 @@ public class Nanoparticle {
 
 	
 	long hotness;
-	
+
+	public double averageFinalStateOccupation;
+
 	double[] cbenergy = new double[2];
 	double cbenergy1, cbenergy2;
 	
@@ -55,7 +57,13 @@ public class Nanoparticle {
 		x = xcoord*Constants.nmtobohr;
 		y = ycoord*Constants.nmtobohr;
 		z = zcoord*Constants.nmtobohr;
+
+		//For PackLSD where ligandlength is constant, this is good. But For Davis' Code, we need to just take the diameter_input
+
 		diameter = diameter_input*Constants.nmtobohr - 2.0*sample.ligandlength;
+
+
+		//diameter=diameter_input*Constants.nmtobohr;
 		radius = diameter/2;
 		set_cbenergy(sample);
 		set_vbenergy(sample);
@@ -64,6 +72,9 @@ public class Nanoparticle {
 			source = true;
 			sample.sources.add(this);
 		}
+
+		//The 3*nmtobohr is ONLY for Davis' cubic samples, because they are well ordered it's easier to identify the drain NPs.
+
 		if(sample.cellz - (z+radius) <= sample.ndist_thr){
 			drain = true;
 			sample.drains.add(this);
@@ -236,7 +247,9 @@ public class Nanoparticle {
 		return false;
 		
 	}
-	
+	public double calculateOnSiteCharging(int occupationNumber){
+		return occupationNumber * (selfenergy0 + (occupationNumber - 1) * selfenergy);
+	}
 	
 	
 	// Works for ONE band only !!!!

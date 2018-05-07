@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.io.PrintWriter;
 
 
+import classes.Result;
 import classes.Sample;
 import util.Configuration;
 import util.Constants;
@@ -162,12 +163,12 @@ class CommensurationBendingProcessor implements Callable<Map<String,Object>> {
 
 		Map<String, Object> params = new HashMap<>();
 
-		params.put("nelec", 400);
+		params.put("nelec", 392);
 		params.put("nholes", 0);
-		params.put("nnanops", 400);
+		params.put("nnanops", 392);
 		params.put("sample_no", id);
 		params.put("feature", "layer_occupation");
-		params.put("temperature", 80.0);
+		params.put("temperature", 1.0);
 		params.put("thr", 0.0);
 		params.put("voltageRatio", 1);
 		params.put("delta_bending", delta_bending);
@@ -187,6 +188,47 @@ class CommensurationBendingProcessor implements Callable<Map<String,Object>> {
 }
 
 
+class MattLawProcessor implements Callable<Map<String,Object>> {
+	private int id;
+	public int numElec;
+	public double propLNP;
+	public MattLawProcessor(int id, int numElec, double propLNP){
+		this.id = id;
+		this.numElec=numElec;
+		this.propLNP=propLNP;
+	}
+
+	@Override
+	public Map<String,Object> call() {
+		System.out.println("Starting: "+id);
+
+
+		Map<String, Object> params = new HashMap<>();
+
+		params.put("nelec", numElec);
+		params.put("nholes", 0);
+		params.put("nnanops", 400);
+		params.put("sample_no", id);
+		params.put("feature", "ML");
+		params.put("temperature", 80.0);
+		params.put("thr", 0.0);
+		params.put("voltageRatio", 1);
+		params.put("delta_bending", 0.0);
+		params.put("Proportion_Large_NP", propLNP);
+
+
+		Sample newsample = new Sample(params);
+
+		Map<String,Object> result = newsample.simulation();
+
+		System.out.println("Completed: "+id);
+
+		return result;
+	}
+}
+
+
+
 public class App {
 
 
@@ -199,12 +241,14 @@ public class App {
 		results.put("current", 1.0);
 		results.put("top occupation", 1.0);
 
-		int numberOfSamples = 200;
+		// TODO check that the number of samples is correct.
+
+		int numberOfSamples = 40;
 		String CommensurationLoop = null;
 
 		String feature = null;
 		Scanner reader = new Scanner(System.in);
-		System.out.println("Please choose the feature you are interested in (1=mobility or 2=iv or 3=commensuration): ");
+		System.out.println("Please choose the feature you are interested in (1=mobility or 2=iv or 3=commensuration or 4=LawBimodalMobility): ");
 		int n = reader.nextInt();
 		if (n == 3) {
 			System.out.println("What are you sweeping over? (1=electron number or 2=gate voltage): ");
@@ -228,7 +272,12 @@ public class App {
 		} else if (n == 3) {
 			feature = "commensuration";
 			Configuration.twoLayer = true;
-		} else {
+		}
+			else if (n==4){
+			Configuration.mattLawSamples = true;
+			Configuration.twoLayer = false;
+		}
+		else {
 			System.exit(2);
 		}
 
@@ -325,7 +374,7 @@ public class App {
 				{
 					if (!Configuration.biModal && key != "id") {
 						try {
-							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+							writer = new PrintWriter(key + "Standard Processor.txt", "UTF-8");
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
 						} catch (UnsupportedEncodingException e) {
@@ -375,7 +424,7 @@ public class App {
 				ExecutorService executor = Executors.newFixedThreadPool(4);
 				List<Future<Map<String, Object>>> futures = new ArrayList<>();
 				for (int i = 0; i < numberOfSamples; i++) {
-					futures.add(executor.submit(new CommensurationBendingProcessor(i, multiplierList[t])));
+					futures.add(executor.submit(new IVProcessor(i, multiplierList[t])));
 				}
 
 				executor.shutdown();
@@ -445,7 +494,7 @@ public class App {
 				{
 					if (!Configuration.biModal && key != "id") {
 						try {
-							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+							writer = new PrintWriter(key + "IVProcessor.txt", "UTF-8");
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
 						} catch (UnsupportedEncodingException e) {
@@ -565,7 +614,7 @@ public class App {
 				{
 					if (!Configuration.biModal && key != "id") {
 						try {
-							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+							writer = new PrintWriter(key + "CommensurationElecLoop.txt", "UTF-8");
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
 						} catch (UnsupportedEncodingException e) {
@@ -660,9 +709,9 @@ public class App {
 				//double[] resultProcessed = new double[resultRaw.size()/2];
 				for (String key : results.keySet()) {
 					double[] resultProcessed = new double[resultRaw.size() / 2];
-					for (int i = 0; i < Utility.processResult(resultRaw).size(); i+=1) {
+					for (int i = 0; i < Utility.processResult(resultRaw).size(); i += 1) {
 						//System.out.println(Utility.processResult(resultRaw));
-						if(key!="id") {
+						if (key != "id") {
 							resultProcessed[i] = (double) Utility.processResult(resultRaw).get(i).get(key);
 						}
 						//System.out.println(i);
@@ -688,12 +737,12 @@ public class App {
 
 			}
 
-
+			//TODO KEEP THE NUMBER OF ELECTRONS CORRECT
 			for (String key : results.keySet()) {
 				{
 					if (!Configuration.biModal && key != "id") {
 						try {
-							writer = new PrintWriter(key + String.valueOf(400) + "elec_" + String.valueOf(Configuration.sizeDisorder) + ".txt", "UTF-8");
+							writer = new PrintWriter(key + String.valueOf(392) + "elec_" + String.valueOf(Configuration.sizeDisorder) + "Ordered392.txt", "UTF-8");
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
 						} catch (UnsupportedEncodingException e) {
@@ -734,8 +783,129 @@ public class App {
 			}
 
 		}
-	}
-}
+
+
+		if (Configuration.mattLawSamples) {
+			PrintWriter writer = null;
+
+
+			int[] numElecList = {20, 50, 100, 150, 200};
+			double[] propLNPList = {0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0};
+			double[][][] mobilityresultList = new double[numElecList.length][propLNPList.length][];
+
+			for (int t = 0; t < numElecList.length; t++) {
+				for (int p = 0; p < propLNPList.length; p++) {
+					Configuration.proportionLargeNP=propLNPList[p];
+					ExecutorService executor = Executors.newFixedThreadPool(4);
+					List<Future<Map<String, Object>>> futures = new ArrayList<>();
+					for (int i = 0; i < numberOfSamples; i++) {
+						futures.add(executor.submit(new MattLawProcessor(i, numElecList[t], propLNPList[p])));
+					}
+
+					executor.shutdown();
+
+					// Stop accepting new tasks. Wait for all threads to terminate.
+
+
+					System.out.println("All tasks submitted.");
+
+					// wait for the processes to finish. Setting a time out limit of 1 day.
+					try {
+						executor.awaitTermination(1, TimeUnit.DAYS);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+
+					System.out.println("All tasks completed.");
+
+					//List<Double[]> resultRaw = new ArrayList<>();
+					List<Map<String, Object>> resultRaw = new ArrayList<>();
+
+					//for (Future<Double[]> future : futures) {
+					for (Future<Map<String, Object>> future : futures) {
+						try {
+							resultRaw.add(future.get());
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						} catch (ExecutionException e) {
+							e.printStackTrace();
+						}
+					}
+
+					//double[] resultOrdered = Utility.orderResult(resultRaw);
+
+					// Average over regular and inverted samples
+					//double[] resultProcessed = new double[resultRaw.size()/2];
+					for (String key : Utility.processResult(resultRaw).get(1).keySet()) {
+						double[] resultProcessed = new double[resultRaw.size() / 2];
+						for (int i = 0; i < Utility.processResult(resultRaw).size(); i++) {
+							resultProcessed[i] = (double) Utility.processResult(resultRaw).get(i).get(key);
+							//System.out.println("result processed");
+							//System.out.println(Arrays.toString(resultProcessed));
+						}
+
+						if (key == "id") {
+
+						}
+						if (key == "mobility") {
+							mobilityresultList[t][p] = resultProcessed;
+
+						}
+						//System.out.print("The result list is: " + mobilityresultList[t][p]);
+						System.out.println("We are now " + ((float) t)/numElecList.length + " Through the elec loop in the " + p +
+								"th proportion loop");
+
+
+					}
+				}
+			}
+
+
+					for (String key : results.keySet()) {
+
+							if (key == "mobility") {
+								try {
+									writer = new PrintWriter(key + "MLSample_elec_prop_loop.txt", "UTF-8");
+								} catch (FileNotFoundException e) {
+									e.printStackTrace();
+								} catch (UnsupportedEncodingException e) {
+									e.printStackTrace();
+								}
+
+								double[][][] resultList = new double[numElecList.length][propLNPList.length][];
+								if (key == "mobility") {
+									resultList = mobilityresultList;
+								}
+
+
+								for (int r1 = 0; r1 < numElecList.length; r1++) {
+									for (int r2 = 0; r2 < propLNPList.length; r2++) {
+										System.out.println(Arrays.toString(resultList[r1][r2]));
+										for (int i = 0; i < resultList[r1][r2].length; i++) {
+											writer.print(resultList[r1][r2][i]);
+											writer.print(' ');
+											//System.out.println(resultList[t][i]);
+										}
+										writer.println();
+									}
+								}
+								writer.close();
+
+							}
+
+
+							//System.out.println(Arrays.toString(resultProcessed));
+
+							//System.out.println(results.get(1)[0]);
+						}
+					}
+				}
+
+
+
+			}
 
 
 

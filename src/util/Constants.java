@@ -22,7 +22,7 @@ public class Constants {
 	public static final double amu_si           = 1.660538782e-27  ;//// kg
 	public static final double c_si             = 2.99792458e+8    ;//// m sec^-1
 	 
-	// covert voltage in volt to ry atomic units 
+	// convert voltage in volt to ry atomic units
 	public static final double volt_ry          = electron_si/sqrt2/rydberg_si ;
 	public static final double ry_volt          = 1.0/volt_ry ;
 	

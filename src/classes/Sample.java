@@ -1,7 +1,10 @@
 package classes;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -64,6 +67,9 @@ public class Sample {
     
     MersenneTwisterFast rng;
     public double simTime=0;
+    public double proportionLargeNP;
+
+    Array finalstates;
 
 
 
@@ -77,6 +83,7 @@ public class Sample {
     	temperature = (double) params.get("temperature") * Constants.kelvintory;
     	thr = (double) params.get("thr");
     	delta_bending = (double) params.get("delta_bending");
+    	proportionLargeNP = (double) params.get("Proportion_Large_NP");
 
     	sampleCurrent = 0;
 
@@ -94,6 +101,7 @@ public class Sample {
 		//System.out.println("I've made it past loadConfiguration");
    
 		nanoparticles = Setup.setupNanoparticles(this);
+		//System.out.println("There are: " + nanoparticles.length + " nanoparticles in this sample");
 		//System.out.println("I've made it past setupNanoparticles in " + sample_number);
     	/*System.out.println(nelec);
         System.out.println(nanoparticles[0].x/Constants.nmtobohr);
@@ -107,7 +115,7 @@ public class Sample {
 		if(Configuration.biModal){
 			FWHM=0;
 		}
-		else if(Configuration.sizeDisorder>0){
+		else if(Double.parseDouble(Configuration.sizeDisorder)>0){
 			FWHM=0;
 		}
 		else {
@@ -147,7 +155,150 @@ public class Sample {
         
     }
     
-    
+    public void outputFinalState(){
+
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter("FinalState"+Configuration.sizeDisorder + '_' + this.sample_number + '_' + Math.round(this.delta_bending*Constants.rytoev*1000) + "meV");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		System.out.println("The gate voltage is: " + Math.round(this.delta_bending*Constants.rytoev*1000));
+		writer.println("x y z r occ");
+
+		for(Nanoparticle np : nanoparticles){
+			writer.print(String.valueOf(np.x*Constants.bohrtonm)+ ' ' + String.valueOf(np.y*Constants.bohrtonm) + ' ' + String.valueOf(np.z*Constants.bohrtonm) + ' ' + String.valueOf(np.diameter*Constants.bohrtonm) + ' ' + String.valueOf(np.averageFinalStateOccupation));
+			writer.println();
+		}
+		writer.close();
+	}
+
+
+	public ArrayList<Nanoparticle> findLayerTraps(){
+    	//finds the nanoparticles that are traps in a single layer, ignoring the second layer (only works for a perfectly ordered system)
+
+    	ArrayList<Nanoparticle> layerTraps = new ArrayList<Nanoparticle>();
+    	for(Nanoparticle np : nanoparticles){
+    		int i=0;
+    		for(Nanoparticle neighbor : np.nearestNeighbors){
+    			if(neighbor.x==np.x && np.cbenergy1<neighbor.cbenergy1){
+    				i+=1;
+    				if(i==4){
+    					layerTraps.add(np);
+					}
+				}
+			}
+		}
+
+		return layerTraps;
+	}
+
+	public ArrayList<Nanoparticle> findLayerBlocks(){
+		//finds the nanoparticles that are Blocks in a single layer, ignoring the second layer (only works for a perfectly ordered system)
+
+		ArrayList<Nanoparticle> layerBlocks = new ArrayList<Nanoparticle>();
+		for(Nanoparticle np : nanoparticles){
+			int i=0;
+			for(Nanoparticle neighbor : np.nearestNeighbors){
+				if(neighbor.x==np.x && np.cbenergy1>neighbor.cbenergy1){
+					i+=1;
+					if(i==4){
+						layerBlocks.add(np);
+					}
+				}
+			}
+		}
+
+		return layerBlocks;
+	}
+
+	public ArrayList<Nanoparticle> findDoubleBlocks() {
+		//Finds the nanoparticles that are traps that have the same y,z coordinates as another trap.
+		ArrayList<Nanoparticle> blockList = findLayerBlocks();
+		ArrayList<Nanoparticle> doubleBlocks = new ArrayList<Nanoparticle>();
+		for (Nanoparticle np : blockList) {
+			for (Nanoparticle np2 : blockList) {
+				if (np.x != np2.x && np.y == np2.y && np.z == np2.z) {
+					doubleBlocks.add(np);
+				}
+			}
+		}
+		return doubleBlocks;
+	}
+
+
+	public ArrayList<Nanoparticle> findDoubleTraps(){
+    	//Finds the nanoparticles that are traps that have the same y,z coordinates as another trap.
+    	ArrayList<Nanoparticle> trapList = findLayerTraps();
+    	ArrayList<Nanoparticle> doubleTraps = new ArrayList<Nanoparticle>();
+    	for(Nanoparticle np : trapList){
+    		for(Nanoparticle np2: trapList){
+    			if(np.x!=np2.x && np.y==np2.y && np.z==np2.z){
+    				doubleTraps.add(np);
+				}
+			}
+		}
+		return doubleTraps;
+	}
+
+	public ArrayList<Nanoparticle> findDoubleOccupancy(){
+    	//Finds the nanoparticles that are doubly occupied by electrons
+		ArrayList<Nanoparticle> doubleOccupancyList = new ArrayList<Nanoparticle>();
+		for(Nanoparticle np : nanoparticles){
+			if(np.occupationTotalElectron==2){
+				doubleOccupancyList.add(np);
+			}
+		}
+		return doubleOccupancyList;
+	}
+
+	public ArrayList<Nanoparticle> findDoublyOccupiedDoubleTraps(){
+		//Finds the Sites with double traps where one is doubly occupied.
+		ArrayList<Nanoparticle> trapList = findLayerTraps();
+		ArrayList<Nanoparticle> doubleOccDoubTraps = new ArrayList<Nanoparticle>();
+		for(Nanoparticle np : trapList){
+			for(Nanoparticle np2: trapList){
+				if(np.x!=np2.x && np.y==np2.y && np.z==np2.z){
+					if(np.occupationTotalElectron==2 | np2.occupationTotalElectron==2){
+						doubleOccDoubTraps.add(np);
+					}
+				}
+			}
+		}
+		return doubleOccDoubTraps;
+	}
+
+	public ArrayList<Nanoparticle> findUnoccupiedDoubleBlocks(){
+		//Finds the sites that are double blocks where one is unoccupied.
+		ArrayList<Nanoparticle> blockList = findLayerBlocks();
+		ArrayList<Nanoparticle> unoccDoubBlocks = new ArrayList<Nanoparticle>();
+		for(Nanoparticle np : blockList){
+			for(Nanoparticle np2: blockList){
+				if(np.x!=np2.x && np.y==np2.y && np.z==np2.z){
+					if(np.occupationTotalElectron==0 | np2.occupationTotalElectron==0){
+						unoccDoubBlocks.add(np);
+					}
+				}
+			}
+		}
+		return unoccDoubBlocks;
+	}
+
+	public boolean doubleOccupancyTraps(){
+    	int i =0;
+    	ArrayList<Nanoparticle> trapList = findLayerTraps();
+    	ArrayList<Nanoparticle> doublyOccupied = findDoubleOccupancy();
+    	for(Nanoparticle np : doublyOccupied){
+    		if(trapList.contains(np)){
+    			i+=1;
+			}
+
+		}
+		System.out.println("The number of doubly occupied traps is: " + i + " The number of doubly occupied nps is: " + doublyOccupied.size());
+		return(i==doublyOccupied.size());
+	}
+
+
     
     private void loadConfiguration()  {
     	
@@ -190,28 +341,50 @@ public class Sample {
     	bimodal = Configuration.biModal;
     	twolayer = Configuration.twoLayer;
     	
-    	if(!bimodal && !twolayer){
+    	if(!bimodal && !twolayer && !Configuration.mattLawSamples){
     		String prefix= "./data/nanoparticles/";
     		String middle = String.valueOf(nnanops)+"_"+Configuration.diameter;
     		String end = "nanoparticles"+String.valueOf(sample_number)+".inp";
     		filename = prefix + middle + end;
     	}
-		if(bimodal && !twolayer){
+		if(bimodal && !twolayer && !Configuration.mattLawSamples){
 			String prefix = "./data/bimodalNanoparticles/";
 			String middle = String.valueOf(Configuration.proportionLargeNP);
 			String end = "/nanoparticles"+String.valueOf(sample_number)+".inp";
 			filename = prefix +middle + end;
 		}
-		if(twolayer){
+		if(twolayer && !Configuration.mattLawSamples){
+
+			/*
+    		//This section is for use when we are using disordered samples
 			String prefix = "./data/CommensurationData/";
-			String middle = String.valueOf(Configuration.sizeDisorder);
+			String middle = Configuration.sizeDisorder;
 			String end = "/nanoparticles"+String.valueOf(sample_number)+".inp";
 			filename = prefix +middle + end;
+			*/
+    		//This section is for use with the highly ordered samples
+
+			String prefix = "./data/OrderedTwoLayer/";
+			String middle = String.valueOf(nnanops)+"_"+Configuration.diameter+"/";
+			String end = Configuration.sizeDisorder+"/nanoparticles"+String.valueOf(sample_number)+".inp";
+			filename = prefix +middle + end;
+
+
+
 		}
+		if(Configuration.mattLawSamples){
+			String prefix = "./data/BimodalMattLaw/";
+			String middle = toString().valueOf(Configuration.proportionLargeNP)+"/";
+			String end = "/nanoparticles"+String.valueOf(sample_number)+".inp";
+			filename = prefix +middle + end;
+
+		}
+
     	
 		List<String> lines;
 		try {
 			lines = Files.readLines(new File(filename), Charsets.UTF_8);
+			//System.out.print("The filename is: ------------------------------------- " + filename);
 			//System.out.println(lines);
 			cellx = Double.valueOf(Arrays.asList(lines.get(3).split(",")).get(1))*Constants.nmtobohr;
 			celly = Double.valueOf(Arrays.asList(lines.get(4).split(",")).get(1))*Constants.nmtobohr;
@@ -421,7 +594,7 @@ public class Sample {
 		int NP, trials=0, maxTrials=100;
 		Nanoparticle targetNP;
     	
-    	// initialize an electron
+    	// initialize a hole
     	Hole h = new Hole();
 		
     	boolean success = false;
@@ -470,6 +643,20 @@ public class Sample {
     	NP1.updateEvents(true, this);
     	
     	NP2.updateEvents(true, this);
+
+    	if(Configuration.nearestNeighborCoulomb){
+    		for(Nanoparticle np: NP1.nearestNeighbors){
+    			if(np!=NP2){
+    				np.updateEvents(true, this);
+				}
+
+			}
+			for(Nanoparticle np: NP2.nearestNeighbors){
+    			if(np!=NP1){
+    				np.updateEvents(true, this);
+				}
+			}
+		}
 	}
     
     
@@ -570,6 +757,9 @@ public class Sample {
 		//System.out.println("I'm in sample number " + sample_number + " before initializing events");
         initializeEvents();
 		//System.out.println("I'm in sample number " + sample_number + " after initializing events");
+		for(Nanoparticle np : nanoparticles){
+			np.averageFinalStateOccupation=0;
+		}
     	for(int i=0; i<Configuration.STEPS; i++){
     		
     		//System.out.println();
@@ -595,7 +785,12 @@ public class Sample {
     
     		}
     		
-    		
+    		if(i>=300000){
+    			for(Nanoparticle np : nanoparticles){
+    				np.averageFinalStateOccupation+=np.occupationTotalElectron;
+				}
+			}
+
     		
     		/*/debug section
     		System.out.println(currentEvent+" "+currentEvent.sourceNP+" "+currentEvent.targetNP);
@@ -644,6 +839,22 @@ public class Sample {
 		//System.out.println("The mobility is: " + mobility);
 		//System.out.println("The sample current is: " + sampleCurrent);
 		//System.out.println("The sample feature is:" + feature);
+		//System.out.println("The number of drains is" + this.drains.size());
+		//System.out.println("The number of sources is" + this.sources.size());
+		//outputFinalState();
+		/*System.out.println("The number of double trap states is: " + findDoubleTraps().size()/2);
+		System.out.println("The number of double block states is: " + findDoubleBlocks().size()/2);
+		System.out.println("The number of doubly occupied double trap states is: " + findDoublyOccupiedDoubleTraps().size()/2);
+		System.out.println("The number of doubly occupied nanoparticles is: " + findDoubleOccupancy().size());
+		System.out.println("The number of unoccupied double block states is: " +findUnoccupiedDoubleBlocks().size()/2);
+		System.out.println("My estimate for doubly occupied states is: " + (findDoublyOccupiedDoubleTraps().size()/2+findUnoccupiedDoubleBlocks().size()/2));
+		*/
+		//System.out.print("The number of layer trap states is: " + findLayerTraps().size() + " ");
+		//System.out.println("The voltage is: " + voltage*Constants.rytoev);
+		System.out.println("The mobility is: " + mobility);
+
+
+
 
 		return results;
 
@@ -684,6 +895,7 @@ public class Sample {
     	params.put("thr", 0.0);
     	params.put("voltageRatio", 1);
     	params.put("delta_bending",0.0);
+    	params.put("Proportion_Large_NP", 0.0);
         
         Sample newsample = new Sample(params);
 

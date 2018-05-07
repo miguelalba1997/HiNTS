@@ -17,6 +17,15 @@ public class Electron extends Charge {
 	
 	
 	public double lookForEvents(Sample sample) {
+		/* This function looks for all the events that are seen by the electron instance.
+
+		Args:
+		  sample: a Sample object.
+
+		Returns:
+		  a double, which is the sum of rates on the electron instance in atomic units.
+	    */
+
 		//System.out.println(this.hostNP);
 		double degeneracy;
 		double netDistance;
@@ -67,11 +76,21 @@ public class Electron extends Charge {
 	private double calculateCharging(Nanoparticle targetNP, Nanoparticle sourceNP, Sample sample){
 	    double charging = 0.0;
     	// On-Site charging energy
-    	if(sample.lcapacitance0)
+    	//if(sample.lcapacitance0){
+    		/*
+    		This was the charging code before 5/3/2018!
+
     		charging += targetNP.selfenergy0 - sourceNP.selfenergy0 ;
     	
     	charging += targetNP.occupationTotalElectron*targetNP.selfenergy - (sourceNP.occupationTotalElectron-1)*sourceNP.selfenergy;
-    	return charging;
+    	*/
+    		double chargingBefore = (targetNP.calculateOnSiteCharging(targetNP.occupationTotalElectron)
+					                 + sourceNP.calculateOnSiteCharging((sourceNP.occupationTotalElectron)));
+    	    double chargingAfter = (targetNP.calculateOnSiteCharging(targetNP.occupationTotalElectron+1)
+				                + sourceNP.calculateOnSiteCharging((sourceNP.occupationTotalElectron-1)));
+
+
+    		return (chargingAfter-chargingBefore)/Configuration.screeningFactor;
     }
 	
 	private double calculateExciton(Nanoparticle targetNP, Nanoparticle sourceNP, Sample sample){
@@ -115,6 +134,7 @@ public class Electron extends Charge {
     	double energy_diff = 0.0;
     	double rate = 0, overlap;
     	double npdistance = targetNP.edgeDistanceMap.get(sourceNP);
+    	//System.out.println("The np distance is" + npdistance);
     	// Kinetic energy difference
     	energy_diff += targetNP.cbenergy[targetOrbital] - sourceNP.cbenergy[sourceOrbital] ;
     	
