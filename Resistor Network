@@ -1,0 +1,23 @@
+## this program is designed to
+## model a resistor network 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def main():
+    int r1, r2, r3, r4, r5, r6;
+    x = np.linespace(0, 10, 10)
+    r_array = []
+    for r1 in range(10):
+        for r2 in range(10):
+            for r3 in range(10):
+               for r4 in range(10):
+                    for r5 in range(10):
+                        for r6 in range(10):
+                              resistance_eff = ((1/(r5 + r6 + r4) + 1/r3)**-1) + r2 + r1
+                              y = np.array([0:1000000])    
+    plt.figure(1)
+    plt.plot(x,y)
+    plt.ylabel('effective resistance (ohms)')
+    plt.xlabel('individual resistances')
